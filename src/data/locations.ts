@@ -1,4 +1,4 @@
-import { Location } from '../types';
+import { Location, LOCATION_IMAGES } from '../types';
 
 export const locations: Location[] = [
   {
@@ -8,6 +8,7 @@ export const locations: Location[] = [
     emoji: '📚',
     availableTimes: ['morning', 'afternoon', 'evening'],
     charactersPresent: ['sakura', 'rei'],
+    bgImage: LOCATION_IMAGES.library,
     bgGradient: 'from-amber-900/60 via-yellow-900/30 to-stone-900/80',
   },
   {
@@ -17,6 +18,7 @@ export const locations: Location[] = [
     emoji: '🏋️',
     availableTimes: ['morning', 'afternoon'],
     charactersPresent: ['yuki', 'miko'],
+    bgImage: LOCATION_IMAGES.gym,
     bgGradient: 'from-orange-900/50 via-red-900/30 to-stone-900/80',
   },
   {
@@ -26,6 +28,7 @@ export const locations: Location[] = [
     emoji: '🏃',
     availableTimes: ['morning', 'afternoon', 'evening'],
     charactersPresent: ['yuki'],
+    bgImage: LOCATION_IMAGES.gym,
     bgGradient: 'from-green-900/50 via-emerald-900/30 to-stone-900/80',
   },
   {
@@ -35,6 +38,7 @@ export const locations: Location[] = [
     emoji: '🎹',
     availableTimes: ['afternoon', 'evening'],
     charactersPresent: ['hina'],
+    bgImage: LOCATION_IMAGES.music_room,
     bgGradient: 'from-violet-900/50 via-purple-900/30 to-stone-900/80',
   },
   {
@@ -44,6 +48,7 @@ export const locations: Location[] = [
     emoji: '🏫',
     availableTimes: ['morning', 'afternoon'],
     charactersPresent: ['hina', 'miko'],
+    bgImage: LOCATION_IMAGES.classroom,
     bgGradient: 'from-sky-900/50 via-blue-900/30 to-stone-900/80',
   },
   {
@@ -53,6 +58,7 @@ export const locations: Location[] = [
     emoji: '🌺',
     availableTimes: ['morning', 'afternoon', 'evening'],
     charactersPresent: ['sakura', 'miko'],
+    bgImage: LOCATION_IMAGES.garden,
     bgGradient: 'from-green-900/50 via-lime-900/20 to-stone-900/80',
   },
   {
@@ -62,15 +68,17 @@ export const locations: Location[] = [
     emoji: '🌅',
     availableTimes: ['afternoon', 'evening', 'night'],
     charactersPresent: ['sakura', 'yuki', 'rei'],
+    bgImage: LOCATION_IMAGES.rooftop,
     bgGradient: 'from-indigo-900/50 via-purple-900/30 to-stone-900/80',
   },
   {
     id: 'council_room',
     name: 'Council Room',
-    description: 'The student council\'s private meeting room.',
+    description: "The student council's private meeting room.",
     emoji: '🏛️',
     availableTimes: ['afternoon', 'evening'],
     charactersPresent: ['rei'],
+    bgImage: LOCATION_IMAGES.council_room,
     bgGradient: 'from-slate-900/60 via-gray-900/40 to-stone-900/80',
   },
   {
@@ -80,6 +88,7 @@ export const locations: Location[] = [
     emoji: '☕',
     availableTimes: ['morning', 'afternoon', 'evening', 'night'],
     charactersPresent: [],
+    bgImage: LOCATION_IMAGES.cafe,
     bgGradient: 'from-amber-900/50 via-orange-900/30 to-stone-900/80',
   },
   {
@@ -89,6 +98,7 @@ export const locations: Location[] = [
     emoji: '🌳',
     availableTimes: ['evening', 'night'],
     charactersPresent: ['sakura', 'hina', 'miko'],
+    bgImage: LOCATION_IMAGES.park,
     bgGradient: 'from-emerald-900/40 via-teal-900/20 to-stone-900/80',
   },
 ];
