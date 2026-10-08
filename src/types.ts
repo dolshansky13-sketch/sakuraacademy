@@ -2,7 +2,27 @@ export type RelationshipStage = 'stranger' | 'acquaintance' | 'friend' | 'close_
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'snowy';
 export type GamePhase = 'title' | 'wakeup' | 'location_select' | 'encounter' | 'dialogue' | 'choice' | 'gift_give' | 'flirt' | 'secret_scenes' | 'event' | 'day_end' | 'menu' | 'date' | 'minigame' | 'text_message';
-export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking' | 'soft' | 'vulnerable' | 'warm' | 'caring' | 'excited' | 'serious' | 'intense';
+export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking' | 'soft' | 'vulnerable' | 'warm' | 'caring' | 'excited' | 'serious' | 'intense' | 'teasing' | 'possessive' | 'obsessive';
+
+export interface CharacterPsyche {
+  alterEgo: string;
+  secretDesire: string;
+  obsession: string;
+  trigger: string;
+  hiddenSide: string;
+}
+
+export interface Outfit {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: 'casual' | 'formal' | 'cosplay' | 'lingerie' | 'fantasy';
+  emoji: string;
+  affectionBonus: number;
+  tensionBonus: number;
+  characterPreference?: string[];
+}
 
 export interface Character {
   id: string;
@@ -30,6 +50,9 @@ export interface Character {
     sweet: string[];
   };
   textMessages: Record<RelationshipStage, string[]>;
+  psyche: CharacterPsyche;
+  outfitPreferences: string[];
+  roleplayScenes: string[];
 }
 
 export interface Gift {
@@ -165,6 +188,8 @@ export const LOCATION_IMAGES: Record<string, string> = {
   gym: 'https://image.qwenlm.ai/generated-images/4de44eeb-8d03-4408-a6b6-a30ab0cce11b/_result.png',
   track: 'https://image.qwenlm.ai/generated-images/4de44eeb-8d03-4408-a6b6-a30ab0cce11b/_result.png',
   council_room: 'https://image.qwenlm.ai/generated-images/b9fd1900-bb34-49de-8701-85229b046844/_result.png',
+  apartment: 'https://image.qwenlm.ai/generated-images/98f1310d-0d6a-4f9c-b1c5-a31c4e9e5189/_result.png',
+  outfit_store: 'https://image.qwenlm.ai/generated-images/b1e6c331-1c2a-4683-9963-39f6d970cd08/_result.png',
 };
 
 export const CHARACTER_PORTRAITS: Record<string, string> = {

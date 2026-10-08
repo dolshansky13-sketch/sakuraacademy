@@ -2,6 +2,26 @@ import { Location, LOCATION_IMAGES } from '../types';
 
 export const locations: Location[] = [
   {
+    id: 'apartment',
+    name: 'Your Apartment',
+    description: 'Your cozy private space. Rest, train, or prepare for dates.',
+    emoji: '🏠',
+    availableTimes: ['morning', 'afternoon', 'evening', 'night'],
+    charactersPresent: [],
+    bgImage: LOCATION_IMAGES.apartment,
+    bgGradient: 'from-amber-900/40 via-orange-900/20 to-stone-900/80',
+  },
+  {
+    id: 'outfit_store',
+    name: 'Fashion Boutique',
+    description: 'A trendy shop with outfits, costumes, and special items.',
+    emoji: '👗',
+    availableTimes: ['morning', 'afternoon', 'evening'],
+    charactersPresent: [],
+    bgImage: LOCATION_IMAGES.outfit_store,
+    bgGradient: 'from-pink-900/40 via-purple-900/20 to-stone-900/80',
+  },
+  {
     id: 'library',
     name: 'Library',
     description: 'A quiet sanctuary of books and knowledge.',

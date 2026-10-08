@@ -153,7 +153,7 @@ export function useGameState() {
         if (prev.phase === 'wakeup') {
           return { ...prev, phase: 'location_select', currentDialogue: [], currentDialogueIndex: 0 };
         }
-        if (prev.currentLocation === 'cafe') {
+        if (prev.currentLocation === 'cafe' || prev.currentLocation === 'outfit_store' || prev.currentLocation === 'apartment') {
           return { ...prev, currentDialogueIndex: prev.currentDialogue.length - 1 };
         }
         if (prev.phase === 'day_end') {
@@ -173,7 +173,7 @@ export function useGameState() {
             notifications: [`☀️ Day ${newDay} — ¥${prev.dailyAllowance} received`, ...prev.notifications].slice(0, 30),
           };
         }
-        if (prev.currentCharacter && prev.phase === 'dialogue') {
+        if (prev.currentCharacter && (prev.phase === 'dialogue' || prev.phase === 'encounter')) {
           const hasSecretScenes = secretScenes.some(s => s.characterId === prev.currentCharacter && canUnlockSecretScene(s, prev) && !prev.scenesCompleted.includes(s.id));
           return {
             ...prev, phase: 'choice',
@@ -206,6 +206,32 @@ export function useGameState() {
         currentDialogue: [
           { speaker: null, text: `You visit the Café.` },
           { speaker: null, text: 'A cozy place to buy gifts and relax. Browse the shop below...' },
+        ],
+        currentDialogueIndex: 0,
+      }));
+      return;
+    }
+
+    // Outfit Store = outfit shop
+    if (locationId === 'outfit_store') {
+      setState(prev => ({
+        ...prev, currentLocation: locationId, phase: 'dialogue', actionsToday: prev.actionsToday + 1,
+        currentDialogue: [
+          { speaker: null, text: `You visit the Fashion Boutique.` },
+          { speaker: null, text: 'A trendy shop with outfits, costumes, and special items. Browse the collection below...' },
+        ],
+        currentDialogueIndex: 0,
+      }));
+      return;
+    }
+
+    // Apartment = rest/train
+    if (locationId === 'apartment') {
+      setState(prev => ({
+        ...prev, currentLocation: locationId, phase: 'dialogue', actionsToday: prev.actionsToday + 1,
+        currentDialogue: [
+          { speaker: null, text: `You return to your apartment.` },
+          { speaker: null, text: 'Your cozy private space. Time to rest, train, or prepare for your next adventure.' },
         ],
         currentDialogueIndex: 0,
       }));

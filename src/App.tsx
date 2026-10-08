@@ -402,7 +402,7 @@ function CafeScene({ allowance, onBuy, onBack }: { allowance: number; onBuy: (id
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {gifts.map(gift => (
+          {gifts.filter(g => g.category !== 'outfit').map(gift => (
             <button key={gift.id} onClick={() => allowance >= gift.price && onBuy(gift.id)} disabled={allowance < gift.price}
               className={`p-3 rounded-xl border text-left transition-all ${allowance >= gift.price ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-yellow-500/30 hover:scale-105' : 'opacity-30 cursor-not-allowed bg-white/3'}`}>
               <span className="text-3xl">{gift.emoji}</span>
@@ -414,6 +414,91 @@ function CafeScene({ allowance, onBuy, onBack }: { allowance: number; onBuy: (id
               </div>
             </button>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== OUTFIT STORE =====
+function OutfitStore({ allowance, onBuy, onBack }: { allowance: number; onBuy: (id: string) => void; onBack: () => void }) {
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 pt-24">
+      <div className="max-w-3xl w-full bg-black/60 backdrop-blur-xl rounded-2xl border border-pink-500/30 p-5 max-h-[70vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-pink-300">👗 Fashion Boutique</h3>
+          <div className="flex items-center gap-3">
+            <span className="text-yellow-400 font-bold">¥{allowance}</span>
+            <button onClick={onBack} className="px-3 py-1 bg-white/10 rounded text-xs text-gray-400 hover:bg-white/20">← Leave</button>
+          </div>
+        </div>
+        <p className="text-pink-200/60 text-sm mb-4">Special outfits and costumes for your dates!</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {gifts.filter(g => g.category === 'outfit').map(gift => (
+            <button key={gift.id} onClick={() => allowance >= gift.price && onBuy(gift.id)} disabled={allowance < gift.price}
+              className={`p-3 rounded-xl border text-left transition-all ${allowance >= gift.price ? 'bg-pink-500/5 hover:bg-pink-500/10 border-pink-500/20 hover:border-pink-400/40 hover:scale-105' : 'opacity-30 cursor-not-allowed bg-white/3'}`}>
+              <span className="text-3xl">{gift.emoji}</span>
+              <p className="text-sm text-white font-medium mt-1">{gift.name}</p>
+              <p className="text-xs text-gray-400">{gift.description}</p>
+              <div className="flex justify-between mt-2">
+                <span className="text-xs text-yellow-400 font-bold">¥{gift.price}</span>
+                <span className="text-xs text-pink-400">+{gift.affectionBonus}♥</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== APARTMENT MENU =====
+function ApartmentMenu({ state, onTrain, onBack }: { state: GameState; onTrain: (stat: 'academics' | 'athletics' | 'charm' | 'creativity') => void; onBack: () => void }) {
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 pt-24">
+      <div className="max-w-md w-full bg-black/60 backdrop-blur-xl rounded-2xl border border-amber-500/30 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-amber-300">🏠 Your Apartment</h3>
+          <button onClick={onBack} className="px-3 py-1 bg-white/10 rounded text-xs text-gray-400 hover:bg-white/20">← Leave</button>
+        </div>
+        <p className="text-amber-200/60 text-sm mb-4">Train your stats or rest.</p>
+        <div className="space-y-3">
+          <button
+            onClick={() => onTrain('academics')}
+            className="w-full p-4 bg-blue-900/50 hover:bg-blue-800/50 border-2 border-blue-500/50 rounded-lg text-left transition-all"
+          >
+            <div className="text-2xl mb-1">📚</div>
+            <div className="font-bold text-white">Study</div>
+            <div className="text-xs text-blue-300">Increase Academics (+5)</div>
+            <div className="text-xs text-gray-400 mt-1">Current: {state.playerStats.academics}/100</div>
+          </button>
+          <button
+            onClick={() => onTrain('athletics')}
+            className="w-full p-4 bg-green-900/50 hover:bg-green-800/50 border-2 border-green-500/50 rounded-lg text-left transition-all"
+          >
+            <div className="text-2xl mb-1">🏃</div>
+            <div className="font-bold text-white">Exercise</div>
+            <div className="text-xs text-green-300">Increase Athletics (+5)</div>
+            <div className="text-xs text-gray-400 mt-1">Current: {state.playerStats.athletics}/100</div>
+          </button>
+          <button
+            onClick={() => onTrain('charm')}
+            className="w-full p-4 bg-pink-900/50 hover:bg-pink-800/50 border-2 border-pink-500/50 rounded-lg text-left transition-all"
+          >
+            <div className="text-2xl mb-1">💬</div>
+            <div className="font-bold text-white">Socialize</div>
+            <div className="text-xs text-pink-300">Increase Charm (+5)</div>
+            <div className="text-xs text-gray-400 mt-1">Current: {state.playerStats.charm}/100</div>
+          </button>
+          <button
+            onClick={() => onTrain('creativity')}
+            className="w-full p-4 bg-purple-900/50 hover:bg-purple-800/50 border-2 border-purple-500/50 rounded-lg text-left transition-all"
+          >
+            <div className="text-2xl mb-1">🎨</div>
+            <div className="font-bold text-white">Create</div>
+            <div className="text-xs text-purple-300">Increase Creativity (+5)</div>
+            <div className="text-xs text-gray-400 mt-1">Current: {state.playerStats.creativity}/100</div>
+          </button>
         </div>
       </div>
     </div>
@@ -640,6 +725,16 @@ export default function App() {
       {/* CAFÉ SHOP */}
       {state.phase === 'dialogue' && state.currentLocation === 'cafe' && state.currentDialogueIndex >= state.currentDialogue.length - 1 && (
         <CafeScene allowance={state.allowance} onBuy={buyGift} onBack={backToLocationSelect} />
+      )}
+
+      {/* OUTFIT STORE */}
+      {state.phase === 'dialogue' && state.currentLocation === 'outfit_store' && state.currentDialogueIndex >= state.currentDialogue.length - 1 && (
+        <OutfitStore allowance={state.allowance} onBuy={buyGift} onBack={backToLocationSelect} />
+      )}
+
+      {/* APARTMENT MENU */}
+      {state.phase === 'dialogue' && state.currentLocation === 'apartment' && state.currentDialogueIndex >= state.currentDialogue.length - 1 && (
+        <ApartmentMenu state={state} onTrain={trainStat} onBack={backToLocationSelect} />
       )}
 
       {/* DIALOGUE */}
