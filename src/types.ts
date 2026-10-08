@@ -204,6 +204,32 @@ export const CHARACTER_PORTRAITS: Record<string, string> = {
   miko: 'https://image.qwenlm.ai/generated-images/dabba02d-ff1c-49f5-ac62-984281f70563/_result.png',
 };
 
+// Mood-specific portraits
+export const MOOD_PORTRAITS: Record<string, Record<string, string>> = {
+  sakura: {
+    default: 'https://image.qwenlm.ai/generated-images/885e2d6e-4f08-4634-af0b-00787c7fedcf/_result.png',
+    shy: 'https://image.qwenlm.ai/generated-images/a268a03c-c171-4201-999a-a6c709f84f59/_result.png',
+    love: 'https://image.qwenlm.ai/generated-images/994bbb1b-05b8-4658-9b4a-6b2ec05a08ae/_result.png',
+  },
+  yuki: {
+    default: 'https://image.qwenlm.ai/generated-images/10e70a54-8117-4b9c-85c3-5392fd8f0103/_result.png',
+    smirk: 'https://image.qwenlm.ai/generated-images/dfc83358-867f-48bd-a710-575269fcb264/_result.png',
+    flustered: 'https://image.qwenlm.ai/generated-images/702e7223-66c9-42ad-8bfd-9cfa62542403/_result.png',
+  },
+  hina: {
+    default: 'https://image.qwenlm.ai/generated-images/804bf3f5-64a4-407c-aba1-32d5963589ee/_result.png',
+    happy: 'https://image.qwenlm.ai/generated-images/cc374da4-b993-4dae-a746-5886741650f1/_result.png',
+  },
+  rei: {
+    default: 'https://image.qwenlm.ai/generated-images/759a1471-c64c-40ed-b6c1-053bc4f84baa/_result.png',
+    thinking: 'https://image.qwenlm.ai/generated-images/edf8cf8e-2f1b-4ac1-91ae-afcf3f6cbc81/_result.png',
+  },
+  miko: {
+    default: 'https://image.qwenlm.ai/generated-images/dabba02d-ff1c-49f5-ac62-984281f70563/_result.png',
+    warm: 'https://image.qwenlm.ai/generated-images/8e95065d-6f96-47c3-8ba3-66d192603686/_result.png',
+  },
+};
+
 export const PLAYER_PORTRAIT = 'https://image.qwenlm.ai/generated-images/f973aec0-d271-49fa-a393-58e6efbd008c/_result.png';
 
 export const OUTFIT_IMAGES: Record<string, string> = {

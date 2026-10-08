@@ -652,7 +652,7 @@ export function useGameState() {
   }, [conversationSystem]);
 
   const makeConversationChoice = useCallback((choiceId: string) => {
-    if (!conversationSystem) return;
+    if (!conversationSystem || !state.currentCharacter) return;
 
     const result = conversationSystem.selectChoice(choiceId);
     if (result) {
@@ -661,10 +661,39 @@ export function useGameState() {
       setConversationPhase('responding');
       // Get new choices for next turn
       setConversationChoices(conversationSystem.getPlayerChoices());
-      // Update state reference
-      setState(conversationSystem['state']);
+      
+      // Apply effects to state properly
+      const effects = result.effects;
+      if (effects) {
+        setState(prev => {
+          const newRels = { ...prev.relationships };
+          const charId = prev.currentCharacter!;
+          const rel = { ...newRels[charId] };
+          
+          if (effects.affection) {
+            rel.affection = Math.min(100, Math.max(0, rel.affection + effects.affection));
+          }
+          if (effects.tension) {
+            rel.tension = Math.min(100, Math.max(0, rel.tension + effects.tension));
+          }
+          if (effects.memory) {
+            if (!rel.memories) rel.memories = [];
+            rel.memories.push(effects.memory);
+          }
+          
+          newRels[charId] = rel;
+          
+          return {
+            ...prev,
+            relationships: newRels,
+            notifications: effects.affection 
+              ? [`💬 ${characters.find(c => c.id === charId)?.name}: ${effects.affection > 0 ? '+' : ''}${effects.affection}♥`, ...prev.notifications].slice(0, 30)
+              : prev.notifications,
+          };
+        });
+      }
     }
-  }, [conversationSystem]);
+  }, [conversationSystem, state.currentCharacter]);
 
   const endConversation = useCallback(() => {
     if (conversationSystem) {

@@ -4,7 +4,7 @@ import { characters } from './data/characters';
 import { locations } from './data/locations';
 import { gifts } from './data/gifts';
 import { secretScenes } from './data/secretScenes';
-import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, PLAYER_PORTRAIT, OUTFIT_IMAGES, GameState, RelationshipStage, Mood, FlirtOption, SECRET_BG } from './types';
+import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, MOOD_PORTRAITS, PLAYER_PORTRAIT, OUTFIT_IMAGES, GameState, RelationshipStage, Mood, FlirtOption, SECRET_BG } from './types';
 import { ConversationChoice } from './systems/ConversationSystem';
 
 // ===== TITLE SCREEN =====
@@ -82,10 +82,13 @@ function HUD({ state, onMenu, onSleep }: { state: GameState; onMenu: () => void;
 }
 
 // ===== CHARACTER PORTRAIT (with image) =====
-function CharacterPortrait({ characterId }: { characterId: string }) {
+function CharacterPortrait({ characterId, mood }: { characterId: string; mood?: Mood }) {
   const char = characters.find(c => c.id === characterId);
   if (!char) return null;
-  const portraitUrl = CHARACTER_PORTRAITS[characterId];
+  
+  // Use mood-specific portrait if available, otherwise default
+  const moodPortraits = MOOD_PORTRAITS[characterId];
+  const portraitUrl = (mood && moodPortraits && moodPortraits[mood]) || CHARACTER_PORTRAITS[characterId] || moodPortraits?.default;
 
   return (
     <div className="absolute bottom-36 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
@@ -96,6 +99,7 @@ function CharacterPortrait({ characterId }: { characterId: string }) {
           </div>
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm px-4 py-1 rounded-full border border-white/10">
             <span className="text-white text-sm font-bold">{char.avatar} {char.name}</span>
+            {mood && <span className="text-xs text-gray-300 ml-2">({mood})</span>}
           </div>
         </div>
       ) : (
@@ -815,8 +819,8 @@ export default function App() {
       )}
 
       {/* Character Portrait */}
-      {currentChar && (state.phase === 'encounter' || state.phase === 'dialogue' || state.phase === 'choice' || state.phase === 'flirt') && (
-        <CharacterPortrait characterId={currentChar.id} />
+      {currentChar && (state.phase === 'encounter' || state.phase === 'dialogue' || state.phase === 'choice' || state.phase === 'flirt' || state.phase === 'conversation') && (
+        <CharacterPortrait characterId={currentChar.id} mood={currentMood} />
       )}
 
       {/* Affection/Tension popup */}
