@@ -4,7 +4,8 @@ import { characters } from './data/characters';
 import { locations } from './data/locations';
 import { gifts } from './data/gifts';
 import { secretScenes } from './data/secretScenes';
-import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, GameState, RelationshipStage, Mood, FlirtOption, SECRET_BG } from './types';
+import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, PLAYER_PORTRAIT, OUTFIT_IMAGES, GameState, RelationshipStage, Mood, FlirtOption, SECRET_BG } from './types';
+import { ConversationNode, ConversationChoice } from './systems/ConversationEngine';
 
 // ===== TITLE SCREEN =====
 function TitleScreen({ onStart }: { onStart: () => void }) {
@@ -610,6 +611,72 @@ function NotificationToast({ notifications }: { notifications: string[] }) {
   );
 }
 
+// ===== CONVERSATION DISPLAY =====
+function ConversationDisplay({ 
+  node, 
+  characterId, 
+  choices, 
+  onChoice, 
+  onAdvance 
+}: { 
+  node: ConversationNode; 
+  characterId: string; 
+  choices: ConversationChoice[]; 
+  onChoice: (choiceId: string) => void;
+  onAdvance: () => void;
+}) {
+  const char = characters.find(c => c.id === characterId);
+  const hasChoices = choices.length > 0;
+
+  return (
+    <div className="absolute bottom-0 left-0 right-0 z-30">
+      <div 
+        className="bg-black/80 backdrop-blur-xl border-t border-white/10 px-6 py-5 cursor-pointer"
+        onClick={!hasChoices ? onAdvance : undefined}
+      >
+        {/* Speaker name */}
+        {node.speaker && (
+          <div className="flex items-center gap-2 mb-2">
+            {char && <span className="text-xl">{char.avatar}</span>}
+            <span className={`font-bold ${char ? `bg-gradient-to-r ${char.color} bg-clip-text text-transparent` : 'text-gray-300'}`}>
+              {node.speaker}
+            </span>
+          </div>
+        )}
+
+        {/* Dialogue text */}
+        <p className="text-white text-lg leading-relaxed animate-textReveal">{node.text}</p>
+
+        {/* Choices or continue prompt */}
+        {hasChoices ? (
+          <div className="mt-4 space-y-2" onClick={e => e.stopPropagation()}>
+            {choices.map(choice => (
+              <button
+                key={choice.id}
+                onClick={() => onChoice(choice.id)}
+                className={`w-full px-4 py-3 rounded-xl text-left transition-all border ${
+                  choice.type === 'flirt' 
+                    ? 'bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 text-pink-200' 
+                    : choice.type === 'bold'
+                    ? 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-200'
+                    : 'bg-white/5 hover:bg-white/15 border-white/10 hover:border-white/30 text-white'
+                }`}
+              >
+                <span className="mr-2">{choice.emoji || '•'}</span>
+                {choice.text}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 flex justify-end">
+            <span className="text-gray-500 text-xs animate-pulse">▼ Click to continue</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ===== WEATHER EFFECTS =====
 function WeatherEffects({ weather }: { weather: Weather }) {
   if (weather === 'rainy') {
@@ -640,6 +707,8 @@ export default function App() {
     state, startGame, advanceDialogue, selectLocation, handleChoice,
     giveGift, buyGift, goToSleep, trainStat, openMenu, closeMenu,
     backToLocationSelect, backToChoices, handleFlirt, triggerSecretScene,
+    startConversation, makeConversationChoice, advanceConversation, endConversation, getConversationChoices,
+    currentConversationNode,
     FLIRT_OPTIONS,
   } = useGameState();
 
@@ -766,6 +835,17 @@ export default function App() {
 
       {/* STATS MENU */}
       {state.phase === 'menu' && <StatsMenu state={state} onClose={closeMenu} />}
+
+      {/* CONVERSATION DISPLAY */}
+      {state.phase === 'conversation' && currentConversationNode && state.currentCharacter && (
+        <ConversationDisplay
+          node={currentConversationNode}
+          characterId={state.currentCharacter}
+          choices={getConversationChoices()}
+          onChoice={makeConversationChoice}
+          onAdvance={advanceConversation}
+        />
+      )}
 
       {/* NOTIFICATIONS */}
       <NotificationToast notifications={state.notifications} />

@@ -4,6 +4,8 @@ import { characters } from '../data/characters';
 import { locations, getLocationById } from '../data/locations';
 import { gifts, getGiftById } from '../data/gifts';
 import { secretScenes, canUnlockSecretScene } from '../data/secretScenes';
+import { ConversationEngine, ConversationTree, ConversationNode, ConversationChoice } from '../systems/ConversationEngine';
+import { allConversations } from '../data/conversationTrees';
 
 const INITIAL_RELATIONSHIP: RelationshipProgress = {
   affection: 0, stage: 'stranger', giftsGiven: 0, conversationsHad: 0,
@@ -81,6 +83,7 @@ const getInitialState = (): GameState => {
     notifications: [], scenesCompleted: [],
     actionsToday: 0, maxActionsPerDay: 5,
     totalFlirts: 0, eventsTriggered: [], mood: 'neutral',
+    unlockedScenes: [], flags: [],
   };
 };
 
@@ -123,6 +126,9 @@ function generateChoices(charId: string, stage: RelationshipStage, hasSecretScen
 
 export function useGameState() {
   const [state, setState] = useState<GameState>(getInitialState());
+  const [conversationEngine, setConversationEngine] = useState<ConversationEngine | null>(null);
+  const [activeConversationTree, setActiveConversationTree] = useState<ConversationTree | null>(null);
+  const [currentConversationNode, setCurrentConversationNode] = useState<ConversationNode | null>(null);
 
   const addNotification = useCallback((msg: string) => {
     setState(prev => ({
@@ -276,8 +282,58 @@ export function useGameState() {
 
     const char = allCharsHere[Math.floor(Math.random() * allCharsHere.length)];
     const rel = state.relationships[char.id];
-    const stage = rel.stage;
+    
+    // Try to start a conversation tree
+    const matchingTree = allConversations.find(tree => {
+      if (tree.characterId !== char.id) return false;
+      
+      const { trigger } = tree;
+      
+      // Check location
+      if (trigger.location && !trigger.location.includes(locationId)) return false;
+      
+      // Check weather
+      if (trigger.weather && !trigger.weather.includes(state.weather)) return false;
+      
+      // Check time
+      if (trigger.time && !trigger.time.includes(state.timeOfDay)) return false;
+      
+      // Check affection
+      if (trigger.minAffection && rel.affection < trigger.minAffection) return false;
+      
+      // Check tension
+      if (trigger.minTension && rel.tension < trigger.minTension) return false;
+      
+      // Check stage
+      if (trigger.stage && rel.stage !== trigger.stage) return false;
+      
+      return true;
+    });
 
+    if (matchingTree) {
+      // Use conversation engine
+      const engine = new ConversationEngine(state);
+      const startNode = engine.startConversation(matchingTree);
+
+      if (startNode) {
+        setConversationEngine(engine);
+        setActiveConversationTree(matchingTree);
+        setCurrentConversationNode(startNode);
+        setState(prev => {
+          const newRels = { ...prev.relationships };
+          newRels[char.id] = { ...newRels[char.id], met: true };
+          return {
+            ...prev, phase: 'conversation', currentLocation: locationId, currentCharacter: char.id,
+            actionsToday: prev.actionsToday + 1,
+            relationships: newRels, mood: 'neutral',
+          };
+        });
+        return;
+      }
+    }
+
+    // Fallback to old dialogue system
+    const stage = rel.stage;
     const encounterDialogue: DialogueLine[] = [
       { speaker: null, text: `You arrive at ${loc.name}.` },
     ];
@@ -601,11 +657,108 @@ export function useGameState() {
       .filter(s => !state.scenesCompleted.includes(s.id));
   }, [state]);
 
+  // ===== CONVERSATION ENGINE METHODS =====
+  const startConversation = useCallback((characterId: string) => {
+    // Find a matching conversation tree
+    const matchingTree = allConversations.find(tree => {
+      if (tree.characterId !== characterId) return false;
+      
+      const { trigger } = tree;
+      const rel = state.relationships[characterId];
+      
+      // Check location
+      if (trigger.location && !trigger.location.includes(state.currentLocation || '')) return false;
+      
+      // Check weather
+      if (trigger.weather && !trigger.weather.includes(state.weather)) return false;
+      
+      // Check time
+      if (trigger.time && !trigger.time.includes(state.timeOfDay)) return false;
+      
+      // Check affection
+      if (trigger.minAffection && rel.affection < trigger.minAffection) return false;
+      
+      // Check tension
+      if (trigger.minTension && rel.tension < trigger.minTension) return false;
+      
+      // Check stage
+      if (trigger.stage && rel.stage !== trigger.stage) return false;
+      
+      return true;
+    });
+
+    if (!matchingTree) {
+      addNotification('No conversation available for this context.');
+      return;
+    }
+
+    const engine = new ConversationEngine(state);
+    const startNode = engine.startConversation(matchingTree);
+
+    if (startNode) {
+      setConversationEngine(engine);
+      setActiveConversationTree(matchingTree);
+      setCurrentConversationNode(startNode);
+      setState(prev => ({
+        ...prev,
+        phase: 'conversation',
+        currentCharacter: characterId,
+      }));
+    }
+  }, [state, addNotification]);
+
+  const makeConversationChoice = useCallback((choiceId: string) => {
+    if (!conversationEngine) return;
+
+    const nextNode = conversationEngine.makeChoice(choiceId);
+    
+    if (nextNode) {
+      setCurrentConversationNode(nextNode);
+      // Update state with effects
+      setState(conversationEngine['state']);
+    } else {
+      // Conversation ended
+      endConversation();
+    }
+  }, [conversationEngine]);
+
+  const advanceConversation = useCallback(() => {
+    if (!conversationEngine) return;
+
+    const nextNode = conversationEngine.advance();
+    
+    if (nextNode) {
+      setCurrentConversationNode(nextNode);
+      setState(conversationEngine['state']);
+    } else {
+      // Conversation ended
+      endConversation();
+    }
+  }, [conversationEngine]);
+
+  const endConversation = useCallback(() => {
+    setConversationEngine(null);
+    setActiveConversationTree(null);
+    setCurrentConversationNode(null);
+    setState(prev => ({
+      ...prev,
+      phase: 'location_select',
+      currentCharacter: null,
+    }));
+  }, []);
+
+  const getConversationChoices = useCallback((): ConversationChoice[] => {
+    if (!conversationEngine) return [];
+    return conversationEngine.getAvailableChoices();
+  }, [conversationEngine]);
+
   return {
     state, startGame, advanceDialogue, selectLocation, handleChoice,
     giveGift, buyGift, goToSleep, trainStat, openMenu, closeMenu, resetGame,
     addNotification, backToLocationSelect, backToChoices, handleFlirt,
     triggerSecretScene, getAvailableSecretScenes,
+    startConversation, makeConversationChoice, advanceConversation, endConversation, getConversationChoices,
+    activeConversationTree, currentConversationNode,
     FLIRT_OPTIONS,
   };
 }

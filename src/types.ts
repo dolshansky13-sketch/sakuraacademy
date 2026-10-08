@@ -1,7 +1,7 @@
 export type RelationshipStage = 'stranger' | 'acquaintance' | 'friend' | 'close_friend' | 'romance' | 'partner';
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'snowy';
-export type GamePhase = 'title' | 'wakeup' | 'location_select' | 'encounter' | 'dialogue' | 'choice' | 'gift_give' | 'flirt' | 'secret_scenes' | 'event' | 'day_end' | 'menu' | 'date' | 'minigame' | 'text_message';
+export type GamePhase = 'title' | 'wakeup' | 'location_select' | 'encounter' | 'dialogue' | 'choice' | 'gift_give' | 'flirt' | 'secret_scenes' | 'conversation' | 'event' | 'day_end' | 'menu' | 'date' | 'minigame' | 'text_message';
 export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking' | 'soft' | 'vulnerable' | 'warm' | 'caring' | 'excited' | 'serious' | 'intense' | 'teasing' | 'possessive' | 'obsessive';
 
 export interface CharacterPsyche {
@@ -133,6 +133,7 @@ export interface RelationshipProgress {
   datesHad: number;
   lastTextMessage: string | null;
   tension: number; // 0-100 romantic tension meter
+  lastMood?: Mood; // Track character's last mood
 }
 
 export interface GameState {
@@ -157,6 +158,8 @@ export interface GameState {
   totalFlirts: number;
   eventsTriggered: string[];
   mood: Mood;
+  unlockedScenes: string[]; // Global unlocked scenes
+  flags: string[]; // Game flags for tracking story progress
 }
 
 export const STAGE_THRESHOLDS: Record<RelationshipStage, number> = {
@@ -198,6 +201,19 @@ export const CHARACTER_PORTRAITS: Record<string, string> = {
   hina: 'https://image.qwenlm.ai/generated-images/804bf3f5-64a4-407c-aba1-32d5963589ee/_result.png',
   rei: 'https://image.qwenlm.ai/generated-images/759a1471-c64c-40ed-b6c1-053bc4f84baa/_result.png',
   miko: 'https://image.qwenlm.ai/generated-images/dabba02d-ff1c-49f5-ac62-984281f70563/_result.png',
+};
+
+export const PLAYER_PORTRAIT = 'https://image.qwenlm.ai/generated-images/f973aec0-d271-49fa-a393-58e6efbd008c/_result.png';
+
+export const OUTFIT_IMAGES: Record<string, string> = {
+  maid_outfit: 'https://image.qwenlm.ai/generated-images/d55394f4-0b3e-41a2-9582-20492c067467/_result.png',
+  bunny_girl: 'https://image.qwenlm.ai/generated-images/2d4bea1e-256f-46ac-b7f9-4ade6c71cbf1/_result.png',
+  school_swimsuit: 'https://image.qwenlm.ai/generated-images/875b126f-c385-40d2-9322-f552e29e7310/_result.png',
+  lingerie_set: 'https://image.qwenlm.ai/generated-images/9cfebc2c-1352-4f48-8f56-7dc404d5f1f3/_result.png',
+  kimono: 'https://image.qwenlm.ai/generated-images/88b8a118-ef20-4d50-951d-ffa6606bcdc3/_result.png',
+  nurse_outfit: 'https://image.qwenlm.ai/generated-images/1aa18b18-7c23-47c1-a391-6e00d36d795d/_result.png',
+  catgirl_outfit: 'https://image.qwenlm.ai/generated-images/854a7bdd-b75a-4cc2-887d-ea40ac6cfde7/_result.png',
+  idol_costume: 'https://image.qwenlm.ai/generated-images/076ad3a9-9a20-40eb-8d25-639992f3ff84/_result.png',
 };
 
 export const SECRET_BG: Record<string, string> = {
