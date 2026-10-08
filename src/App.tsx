@@ -5,7 +5,7 @@ import { locations } from './data/locations';
 import { gifts } from './data/gifts';
 import { secretScenes } from './data/secretScenes';
 import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, PLAYER_PORTRAIT, OUTFIT_IMAGES, GameState, RelationshipStage, Mood, FlirtOption, SECRET_BG } from './types';
-import { ConversationNode, ConversationChoice } from './systems/ConversationEngine';
+import { ConversationChoice } from './systems/ConversationSystem';
 
 // ===== TITLE SCREEN =====
 function TitleScreen({ onStart }: { onStart: () => void }) {
@@ -613,63 +613,121 @@ function NotificationToast({ notifications }: { notifications: string[] }) {
 
 // ===== CONVERSATION DISPLAY =====
 function ConversationDisplay({ 
-  node, 
+  characterLine,
   characterId, 
   choices, 
+  topics,
+  phase,
+  mood,
   onChoice, 
-  onAdvance 
+  onTopicSelect,
+  onEnd,
 }: { 
-  node: ConversationNode; 
+  characterLine: string;
   characterId: string; 
-  choices: ConversationChoice[]; 
+  choices: ConversationChoice[];
+  topics: Array<{ id: string; name: string; emoji: string }>;
+  phase: 'greeting' | 'topic_select' | 'responding' | 'reaction';
+  mood: Mood;
   onChoice: (choiceId: string) => void;
-  onAdvance: () => void;
+  onTopicSelect: (topicId: string) => void;
+  onEnd: () => void;
 }) {
   const char = characters.find(c => c.id === characterId);
-  const hasChoices = choices.length > 0;
+  const hasChoices = choices.length > 0 && phase === 'responding';
+  const showTopics = phase === 'topic_select' && topics.length > 0;
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-30">
-      <div 
-        className="bg-black/80 backdrop-blur-xl border-t border-white/10 px-6 py-5 cursor-pointer"
-        onClick={!hasChoices ? onAdvance : undefined}
-      >
-        {/* Speaker name */}
-        {node.speaker && (
-          <div className="flex items-center gap-2 mb-2">
-            {char && <span className="text-xl">{char.avatar}</span>}
-            <span className={`font-bold ${char ? `bg-gradient-to-r ${char.color} bg-clip-text text-transparent` : 'text-gray-300'}`}>
-              {node.speaker}
-            </span>
+      <div className="bg-black/85 backdrop-blur-xl border-t border-white/10 px-6 py-5">
+        {/* Character name and mood */}
+        {char && (
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{char.avatar}</span>
+              <span className={`font-bold bg-gradient-to-r ${char.color} bg-clip-text text-transparent`}>
+                {char.name}
+              </span>
+              <span className="text-xs text-gray-400">({mood})</span>
+            </div>
+            <button onClick={onEnd} className="text-xs text-gray-500 hover:text-white px-2 py-1 rounded bg-white/5 hover:bg-white/10">
+              End Chat ✕
+            </button>
           </div>
         )}
 
-        {/* Dialogue text */}
-        <p className="text-white text-lg leading-relaxed animate-textReveal">{node.text}</p>
+        {/* Character dialogue */}
+        <p className="text-white text-lg leading-relaxed animate-textReveal mb-3">"{characterLine}"</p>
 
-        {/* Choices or continue prompt */}
-        {hasChoices ? (
-          <div className="mt-4 space-y-2" onClick={e => e.stopPropagation()}>
+        {/* Topic selection - show when going back to topics */}
+        {showTopics && topics.length > 0 && (
+          <div className="mt-3">
+            <p className="text-xs text-gray-400 mb-2">What would you like to talk about?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {topics.map(topic => (
+                <button
+                  key={topic.id}
+                  onClick={() => onTopicSelect(topic.id)}
+                  className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 text-white text-sm text-left transition-all"
+                >
+                  <span className="mr-1">{topic.emoji}</span>
+                  {topic.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Response choices */}
+        {hasChoices && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-gray-400 mb-1">Your response:</p>
             {choices.map(choice => (
               <button
                 key={choice.id}
                 onClick={() => onChoice(choice.id)}
-                className={`w-full px-4 py-3 rounded-xl text-left transition-all border ${
-                  choice.type === 'flirt' 
-                    ? 'bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 text-pink-200' 
-                    : choice.type === 'bold'
-                    ? 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-200'
-                    : 'bg-white/5 hover:bg-white/15 border-white/10 hover:border-white/30 text-white'
-                }`}
+                className="w-full px-4 py-3 rounded-xl text-left transition-all border bg-white/5 hover:bg-white/15 border-white/10 hover:border-white/30 text-white text-sm"
               >
-                <span className="mr-2">{choice.emoji || '•'}</span>
                 {choice.text}
               </button>
             ))}
+            <button
+              onClick={onTopicSelect.bind(null, '')}
+              className="w-full px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 text-xs text-center mt-2"
+            >
+              ← Back to topics
+            </button>
           </div>
-        ) : (
-          <div className="mt-3 flex justify-end">
-            <span className="text-gray-500 text-xs animate-pulse">▼ Click to continue</span>
+        )}
+
+        {/* Continue prompt when no choices and not showing topics */}
+        {!hasChoices && !showTopics && phase === 'responding' && (
+          <div className="mt-3">
+            <button
+              onClick={onTopicSelect.bind(null, '')}
+              className="text-xs text-gray-400 hover:text-white animate-pulse"
+            >
+              ▼ Continue conversation...
+            </button>
+          </div>
+        )}
+
+        {/* Greeting phase - show topics immediately */}
+        {phase === 'greeting' && topics.length > 0 && (
+          <div className="mt-3">
+            <p className="text-xs text-gray-400 mb-2">How would you like to continue?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {topics.map(topic => (
+                <button
+                  key={topic.id}
+                  onClick={() => onTopicSelect(topic.id)}
+                  className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 text-white text-sm text-left transition-all"
+                >
+                  <span className="mr-1">{topic.emoji}</span>
+                  {topic.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -707,8 +765,8 @@ export default function App() {
     state, startGame, advanceDialogue, selectLocation, handleChoice,
     giveGift, buyGift, goToSleep, trainStat, openMenu, closeMenu,
     backToLocationSelect, backToChoices, handleFlirt, triggerSecretScene,
-    startConversation, makeConversationChoice, advanceConversation, endConversation, getConversationChoices,
-    currentConversationNode,
+    selectConversationTopic, makeConversationChoice, endConversation, getAvailableTopics, getConversationReaction,
+    currentCharacterLine, currentMood, conversationChoices, conversationPhase,
     FLIRT_OPTIONS,
   } = useGameState();
 
@@ -837,13 +895,24 @@ export default function App() {
       {state.phase === 'menu' && <StatsMenu state={state} onClose={closeMenu} />}
 
       {/* CONVERSATION DISPLAY */}
-      {state.phase === 'conversation' && currentConversationNode && state.currentCharacter && (
+      {state.phase === 'conversation' && currentCharacterLine && state.currentCharacter && (
         <ConversationDisplay
-          node={currentConversationNode}
+          characterLine={currentCharacterLine}
           characterId={state.currentCharacter}
-          choices={getConversationChoices()}
+          choices={conversationChoices}
+          topics={getAvailableTopics()}
+          phase={conversationPhase}
+          mood={currentMood}
           onChoice={makeConversationChoice}
-          onAdvance={advanceConversation}
+          onTopicSelect={(topicId) => {
+            if (topicId === '') {
+              // Back to topic select
+              selectConversationTopic('');
+            } else {
+              selectConversationTopic(topicId);
+            }
+          }}
+          onEnd={endConversation}
         />
       )}
 

@@ -2,7 +2,7 @@ export type RelationshipStage = 'stranger' | 'acquaintance' | 'friend' | 'close_
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'snowy';
 export type GamePhase = 'title' | 'wakeup' | 'location_select' | 'encounter' | 'dialogue' | 'choice' | 'gift_give' | 'flirt' | 'secret_scenes' | 'conversation' | 'event' | 'day_end' | 'menu' | 'date' | 'minigame' | 'text_message';
-export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking' | 'soft' | 'vulnerable' | 'warm' | 'caring' | 'excited' | 'serious' | 'intense' | 'teasing' | 'possessive' | 'obsessive';
+export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking' | 'soft' | 'vulnerable' | 'warm' | 'caring' | 'excited' | 'serious' | 'intense' | 'teasing' | 'possessive' | 'obsessive' | 'curious';
 
 export interface CharacterPsyche {
   alterEgo: string;
@@ -134,6 +134,7 @@ export interface RelationshipProgress {
   lastTextMessage: string | null;
   tension: number; // 0-100 romantic tension meter
   lastMood?: Mood; // Track character's last mood
+  memories?: string[]; // Track conversation memories
 }
 
 export interface GameState {
