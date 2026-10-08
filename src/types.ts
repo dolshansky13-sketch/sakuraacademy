@@ -1,8 +1,8 @@
 export type RelationshipStage = 'stranger' | 'acquaintance' | 'friend' | 'close_friend' | 'romance' | 'partner';
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'snowy';
-export type GamePhase = 'title' | 'wakeup' | 'location_select' | 'encounter' | 'dialogue' | 'choice' | 'gift_give' | 'flirt' | 'event' | 'day_end' | 'menu' | 'date' | 'minigame' | 'text_message';
-export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking';
+export type GamePhase = 'title' | 'wakeup' | 'location_select' | 'encounter' | 'dialogue' | 'choice' | 'gift_give' | 'flirt' | 'secret_scenes' | 'event' | 'day_end' | 'menu' | 'date' | 'minigame' | 'text_message';
+export type Mood = 'neutral' | 'happy' | 'shy' | 'flustered' | 'love' | 'angry' | 'sad' | 'surprised' | 'smirk' | 'thinking' | 'soft' | 'vulnerable' | 'warm' | 'caring' | 'excited' | 'serious' | 'intense';
 
 export interface Character {
   id: string;
@@ -168,6 +168,29 @@ export const LOCATION_IMAGES: Record<string, string> = {
 };
 
 export const CHARACTER_PORTRAITS: Record<string, string> = {
-  sakura: 'https://image.qwenlm.ai/generated-images/e834f767-9aa7-4d0d-af7c-3f6c0f5bd5d5/_result.png',
-  yuki: 'https://image.qwenlm.ai/generated-images/a85e0e9f-c9fb-4d18-abc2-812876665e04/_result.png',
+  sakura: 'https://image.qwenlm.ai/generated-images/885e2d6e-4f08-4634-af0b-00787c7fedcf/_result.png',
+  yuki: 'https://image.qwenlm.ai/generated-images/10e70a54-8117-4b9c-85c3-5392fd8f0103/_result.png',
+  hina: 'https://image.qwenlm.ai/generated-images/804bf3f5-64a4-407c-aba1-32d5963589ee/_result.png',
+  rei: 'https://image.qwenlm.ai/generated-images/759a1471-c64c-40ed-b6c1-053bc4f84baa/_result.png',
+  miko: 'https://image.qwenlm.ai/generated-images/dabba02d-ff1c-49f5-ac62-984281f70563/_result.png',
 };
+
+export const SECRET_BG: Record<string, string> = {
+  intimate: 'https://image.qwenlm.ai/generated-images/00f49f01-3ceb-4c1b-84a7-67797b089698/_result.png',
+};
+
+export interface SecretScene {
+  id: string;
+  characterId: string;
+  title: string;
+  description: string;
+  requiredAffection: number;
+  requiredTension: number;
+  requiredStage: RelationshipStage;
+  requiredStat?: { stat: string; min: number };
+  requiredItem?: string;
+  requiredWeather?: Weather;
+  requiredTime?: TimeOfDay;
+  dialogue: DialogueLine[];
+  bgImage?: string;
+}

@@ -33,6 +33,15 @@ export const gifts: Gift[] = [
 
   // Luxury
   { id: 'chess_set', name: 'Chess Set', description: 'Elegant wooden chess set', price: 350, category: 'luxury', emoji: '♟️', affectionBonus: 9 },
+
+  // Special/Rare Gifts
+  { id: 'sakura_ring', name: 'Sakura Ring', description: 'A delicate ring with a cherry blossom design', price: 800, category: 'special', emoji: '💍', affectionBonus: 15 },
+  { id: 'champion_trophy', name: 'Champion Trophy', description: 'A golden trophy engraved with "To My Champion"', price: 750, category: 'special', emoji: '🏆', affectionBonus: 14 },
+  { id: 'golden_microphone', name: 'Golden Microphone', description: 'A custom golden microphone with her name', price: 900, category: 'special', emoji: '🎤', affectionBonus: 16 },
+  { id: 'moonlight_necklace', name: 'Moonlight Necklace', description: 'A silver necklace with a moon pendant', price: 850, category: 'special', emoji: '🌙', affectionBonus: 15 },
+  { id: 'eternal_rose', name: 'Eternal Rose', description: 'A preserved rose that will never wilt', price: 700, category: 'special', emoji: '🌹', affectionBonus: 14 },
+  { id: 'love_letter', name: 'Handwritten Love Letter', description: 'A heartfelt letter written by you', price: 0, category: 'special', emoji: '💌', affectionBonus: 20 },
+  { id: 'promise_ring', name: 'Promise Ring', description: 'A simple ring symbolizing your promise', price: 1200, category: 'special', emoji: '💎', affectionBonus: 25 },
 ];
 
 export const getGiftById = (id: string): Gift | undefined => gifts.find(g => g.id === id);

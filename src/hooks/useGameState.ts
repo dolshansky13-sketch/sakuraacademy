@@ -3,6 +3,7 @@ import { GameState, RelationshipProgress, RelationshipStage, STAGE_THRESHOLDS, T
 import { characters } from '../data/characters';
 import { locations, getLocationById } from '../data/locations';
 import { gifts, getGiftById } from '../data/gifts';
+import { secretScenes, canUnlockSecretScene } from '../data/secretScenes';
 
 const INITIAL_RELATIONSHIP: RelationshipProgress = {
   affection: 0, stage: 'stranger', giftsGiven: 0, conversationsHad: 0,
@@ -93,7 +94,7 @@ function generateEncounter(charId: string, stage: RelationshipStage): DialogueLi
   ];
 }
 
-function generateChoices(charId: string, stage: RelationshipStage): ChoiceOption[] {
+function generateChoices(charId: string, stage: RelationshipStage, hasSecretScenes: boolean): ChoiceOption[] {
   const char = characters.find(c => c.id === charId)!;
   const choices: ChoiceOption[] = [
     { text: `💬 Chat`, emoji: '💬', affectionChange: 3, type: 'normal' },
@@ -110,6 +111,9 @@ function generateChoices(charId: string, stage: RelationshipStage): ChoiceOption
   }
   if (stage === 'romance' || stage === 'partner') {
     choices.splice(3, 0, { text: `💋 Kiss`, emoji: '💋', affectionChange: 10, type: 'bold' });
+  }
+  if (hasSecretScenes) {
+    choices.push({ text: `✨ Secret Scene`, emoji: '✨', type: 'special' });
   }
   if (stage === 'friend' || stage === 'close_friend') {
     choices.push({ text: `📱 Text Later`, emoji: '📱', affectionChange: 2, type: 'normal' });
@@ -170,10 +174,11 @@ export function useGameState() {
           };
         }
         if (prev.currentCharacter && prev.phase === 'dialogue') {
+          const hasSecretScenes = secretScenes.some(s => s.characterId === prev.currentCharacter && canUnlockSecretScene(s, prev) && !prev.scenesCompleted.includes(s.id));
           return {
             ...prev, phase: 'choice',
             currentDialogue: [], currentDialogueIndex: 0,
-            currentChoices: generateChoices(prev.currentCharacter, prev.relationships[prev.currentCharacter].stage),
+            currentChoices: generateChoices(prev.currentCharacter, prev.relationships[prev.currentCharacter].stage, hasSecretScenes),
           };
         }
         return { ...prev, phase: 'location_select', currentDialogue: [], currentDialogueIndex: 0 };
@@ -281,6 +286,9 @@ export function useGameState() {
       }
       if (choice.text.includes('Flirt')) {
         return { ...prev, phase: 'flirt', currentChoices: [] };
+      }
+      if (choice.text.includes('Secret Scene')) {
+        return { ...prev, phase: 'secret_scenes', currentChoices: [] };
       }
       if (choice.text.includes('Leave')) {
         return {
@@ -410,18 +418,25 @@ export function useGameState() {
       let reaction = '';
       let mood: Mood = 'happy';
 
+      // Special gifts get extra bonuses
+      const isSpecial = gift.category === 'special';
+      if (isSpecial) {
+        bonus = Math.floor(bonus * 1.5);
+      }
+
       if (char.likedGifts.includes(giftId)) {
         bonus = Math.floor(bonus * 2.5);
         reaction = `${char.name}'s eyes light up with joy! They absolutely love it!`;
         mood = 'love';
-        rel.tension = Math.min(100, rel.tension + 8);
+        rel.tension = Math.min(100, rel.tension + (isSpecial ? 15 : 8));
       } else if (char.dislikedGifts.includes(giftId)) {
         bonus = -Math.floor(bonus * 1.5);
         reaction = `${char.name} looks uncomfortable... They don't like this.`;
         mood = 'sad';
       } else {
-        reaction = `${char.name} accepts the gift with a polite smile.`;
-        mood = 'happy';
+        reaction = `${char.name} accepts the gift with a ${isSpecial ? 'surprised gasp' : 'polite smile'}.`;
+        mood = isSpecial ? 'surprised' : 'happy';
+        if (isSpecial) rel.tension = Math.min(100, rel.tension + 5);
       }
 
       rel.affection = Math.min(100, Math.max(0, rel.affection + bonus));
@@ -525,17 +540,46 @@ export function useGameState() {
     setState(prev => ({ ...prev, phase: 'location_select', currentLocation: null, currentCharacter: null, currentDialogue: [], currentDialogueIndex: 0, currentChoices: [] }));
   }, []);
   const backToChoices = useCallback(() => {
-    setState(prev => ({
-      ...prev, phase: 'choice',
-      currentChoices: prev.currentCharacter ? generateChoices(prev.currentCharacter, prev.relationships[prev.currentCharacter].stage) : [],
-    }));
+    setState(prev => {
+      if (!prev.currentCharacter) return { ...prev, phase: 'choice', currentChoices: [] };
+      const hasSecretScenes = secretScenes.some(s => s.characterId === prev.currentCharacter && canUnlockSecretScene(s, prev) && !prev.scenesCompleted.includes(s.id));
+      return {
+        ...prev, phase: 'choice',
+        currentChoices: generateChoices(prev.currentCharacter, prev.relationships[prev.currentCharacter].stage, hasSecretScenes),
+      };
+    });
   }, []);
   const resetGame = useCallback(() => { setState(getInitialState()); }, []);
+
+  const triggerSecretScene = useCallback((sceneId: string) => {
+    const scene = secretScenes.find(s => s.id === sceneId);
+    if (!scene || !canUnlockSecretScene(scene, state)) return;
+
+    const char = characters.find(c => c.id === scene.characterId);
+    if (!char) return;
+
+    setState(prev => ({
+      ...prev,
+      phase: 'dialogue',
+      currentCharacter: scene.characterId,
+      currentDialogue: scene.dialogue,
+      currentDialogueIndex: 0,
+      scenesCompleted: [...prev.scenesCompleted, sceneId],
+      notifications: [`🔓 Secret Scene Unlocked: ${scene.title}`, ...prev.notifications].slice(0, 30),
+    }));
+  }, [state]);
+
+  const getAvailableSecretScenes = useCallback((characterId: string) => {
+    return secretScenes
+      .filter(s => s.characterId === characterId && canUnlockSecretScene(s, state))
+      .filter(s => !state.scenesCompleted.includes(s.id));
+  }, [state]);
 
   return {
     state, startGame, advanceDialogue, selectLocation, handleChoice,
     giveGift, buyGift, goToSleep, trainStat, openMenu, closeMenu, resetGame,
     addNotification, backToLocationSelect, backToChoices, handleFlirt,
+    triggerSecretScene, getAvailableSecretScenes,
     FLIRT_OPTIONS,
   };
 }

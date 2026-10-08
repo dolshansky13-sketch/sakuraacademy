@@ -3,7 +3,8 @@ import { useGameState } from './hooks/useGameState';
 import { characters } from './data/characters';
 import { locations } from './data/locations';
 import { gifts } from './data/gifts';
-import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, GameState, RelationshipStage, Mood, FlirtOption } from './types';
+import { secretScenes } from './data/secretScenes';
+import { STAGE_LABELS, STAGE_COLORS, TimeOfDay, Weather, LOCATION_IMAGES, CHARACTER_PORTRAITS, GameState, RelationshipStage, Mood, FlirtOption, SECRET_BG } from './types';
 
 // ===== TITLE SCREEN =====
 function TitleScreen({ onStart }: { onStart: () => void }) {
@@ -257,6 +258,81 @@ function FlirtMenu({ options, playerCharm, onFlirt, onBack }: {
   );
 }
 
+// ===== SECRET SCENES MENU =====
+function SecretScenesMenu({ characterId, state, onSelect, onBack }: {
+  characterId: string; state: GameState; onSelect: (sceneId: string) => void; onBack: () => void;
+}) {
+  const char = characters.find(c => c.id === characterId);
+  if (!char) return null;
+
+  const availableScenes = secretScenes.filter(s => s.characterId === characterId);
+  const unlockedScenes = availableScenes.filter(s => {
+    const rel = state.relationships[characterId];
+    if (!rel) return false;
+    if (rel.affection < s.requiredAffection) return false;
+    if (rel.tension < s.requiredTension) return false;
+    if (s.requiredStage && rel.stage !== s.requiredStage) return false;
+    return true;
+  });
+
+  const completedScenes = state.scenesCompleted.filter(id => availableScenes.some(s => s.id === id));
+
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl">
+      <div className="max-w-lg w-full bg-gradient-to-b from-purple-950/90 to-indigo-950/90 rounded-2xl border border-purple-500/30 p-6 animate-fadeIn max-h-[80vh] overflow-y-auto">
+        <h3 className="text-xl font-bold text-center text-purple-200 mb-1">✨ Secret Scenes</h3>
+        <p className="text-center text-xs text-gray-400 mb-4">{char.name}'s hidden moments</p>
+        
+        {unlockedScenes.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm">No secret scenes available yet.</p>
+            <p className="text-gray-500 text-xs mt-2">Increase affection and tension to unlock special moments!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {unlockedScenes.map(scene => {
+              const completed = completedScenes.includes(scene.id);
+              return (
+                <button
+                  key={scene.id}
+                  onClick={() => !completed && onSelect(scene.id)}
+                  disabled={completed}
+                  className={`w-full p-4 rounded-xl text-left transition-all border ${
+                    completed
+                      ? 'bg-gray-800/30 border-gray-700/30 opacity-60 cursor-not-allowed'
+                      : 'bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 hover:border-purple-500/50 hover:scale-[1.02]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{completed ? '✅' : '🔓'}</span>
+                        <span className="text-white font-bold">{scene.title}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1 ml-7">{scene.description}</p>
+                      <div className="flex gap-2 mt-2 ml-7 flex-wrap">
+                        <span className="text-xs text-pink-400">♥{scene.requiredAffection}+</span>
+                        <span className="text-xs text-red-400">🔥{scene.requiredTension}+</span>
+                        {scene.requiredStage && <span className="text-xs text-blue-400">{STAGE_LABELS[scene.requiredStage]}</span>}
+                        {scene.requiredWeather && <span className="text-xs text-cyan-400">{scene.requiredWeather}</span>}
+                        {scene.requiredTime && <span className="text-xs text-amber-400">{scene.requiredTime}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <button onClick={onBack} className="mt-4 w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-gray-400 transition-colors">
+          ← Back
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ===== GIFT MENU =====
 function GiftGiveMenu({ characterId, inventory, allowance, onGive, onBack, onBuy }: {
   characterId: string; inventory: { giftId: string; quantity: number }[]; allowance: number;
@@ -293,13 +369,19 @@ function GiftGiveMenu({ characterId, inventory, allowance, onGive, onBack, onBuy
           <h4 className="text-xs text-gray-400 mb-2 font-bold">🛍️ Buy (¥{allowance}):</h4>
           <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
             {gifts.map(gift => (
-              <button key={gift.id} onClick={() => allowance >= gift.price && onBuy(gift.id)} disabled={allowance < gift.price}
-                className={`p-2 rounded-lg text-left transition-all ${allowance >= gift.price ? 'bg-white/5 hover:bg-white/10 border border-white/10' : 'opacity-30 cursor-not-allowed bg-white/3'}`}>
-                <span className="text-lg">{gift.emoji}</span>
-                <p className="text-xs text-white">{gift.name}</p>
-                <p className="text-xs text-yellow-400">¥{gift.price}</p>
-              </button>
-            ))}
+                <button key={gift.id} onClick={() => allowance >= gift.price && onBuy(gift.id)} disabled={allowance < gift.price}
+                  className={`p-2 rounded-lg text-left transition-all relative ${
+                    allowance >= gift.price 
+                      ? gift.category === 'special' 
+                        ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-400/30 hover:border-purple-400/50'
+                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                      : 'opacity-30 cursor-not-allowed bg-white/3'
+                  }`}>
+                  {gift.category === 'special' && <span className="absolute top-1 right-1 text-xs">✨</span>}
+                  <span className="text-lg">{gift.emoji}</span>
+                  <p className="text-xs text-white">{gift.name}</p>
+                  <p className="text-xs text-yellow-400">¥{gift.price}</p>
+                </button>            ))}
           </div>
         </div>
       </div>
@@ -472,7 +554,8 @@ export default function App() {
   const {
     state, startGame, advanceDialogue, selectLocation, handleChoice,
     giveGift, buyGift, goToSleep, trainStat, openMenu, closeMenu,
-    backToLocationSelect, backToChoices, handleFlirt, FLIRT_OPTIONS,
+    backToLocationSelect, backToChoices, handleFlirt, triggerSecretScene,
+    FLIRT_OPTIONS,
   } = useGameState();
 
   const currentLoc = state.currentLocation ? locations.find(l => l.id === state.currentLocation) : null;
@@ -480,6 +563,14 @@ export default function App() {
 
   // Background
   const getBg = () => {
+    // Check if we're in a secret scene with custom background
+    if (state.phase === 'dialogue' && state.currentDialogue.length > 0) {
+      // Look for secret scene by matching dialogue
+      const currentScene = secretScenes.find(s => 
+        s.dialogue[0]?.text === state.currentDialogue[0]?.text
+      );
+      if (currentScene?.bgImage) return currentScene.bgImage;
+    }
     if (currentLoc?.bgImage) return currentLoc.bgImage;
     if (state.currentLocation && LOCATION_IMAGES[state.currentLocation]) return LOCATION_IMAGES[state.currentLocation];
     return '';
@@ -566,6 +657,11 @@ export default function App() {
       {/* FLIRT MENU */}
       {state.phase === 'flirt' && (
         <FlirtMenu options={FLIRT_OPTIONS} playerCharm={state.playerStats.charm} onFlirt={handleFlirt} onBack={backToChoices} />
+      )}
+
+      {/* SECRET SCENES MENU */}
+      {state.phase === 'secret_scenes' && state.currentCharacter && (
+        <SecretScenesMenu characterId={state.currentCharacter} state={state} onSelect={triggerSecretScene} onBack={backToChoices} />
       )}
 
       {/* GIFT MENU */}
