@@ -5,69 +5,100 @@
   width: 4px;
   height: 4px;
 }
-
 ::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Hide scrollbar for category filter */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Selection color */
 ::selection {
   background-color: rgba(236, 72, 153, 0.3);
   color: white;
 }
 
-/* Animation for notifications */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.notification-enter {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* Pulse animation for hearts */
-@keyframes pulse-heart {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.heart-pulse {
-  animation: pulse-heart 2s infinite;
-}
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background: #0a0a0f;
+}
+
+/* Float animation for petals */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+  25% { transform: translateY(-20px) rotate(5deg); opacity: 0.6; }
+  50% { transform: translateY(-10px) rotate(-3deg); opacity: 0.4; }
+  75% { transform: translateY(-25px) rotate(7deg); opacity: 0.5; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Slide down for notifications */
+@keyframes slideDown {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Typewriter-like text reveal */
+@keyframes textReveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-textReveal {
+  animation: textReveal 0.3s ease-out;
+}
+
+/* Heart pulse */
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.animate-heartPulse {
+  animation: heartPulse 1.5s ease-in-out infinite;
+}
+
+/* Glow effect */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(236, 72, 153, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.6); }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
